@@ -16,6 +16,8 @@
 		B88114F3262A332900D63A0F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B88114F1262A332900D63A0F /* Main.storyboard */; };
 		B88114FF262A332A00D63A0F /* A_Star_PathingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B88114FE262A332A00D63A0F /* A_Star_PathingTests.swift */; };
 		B881150A262A332A00D63A0F /* A_Star_PathingUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8811509262A332A00D63A0F /* A_Star_PathingUITests.swift */; };
+		B881151B262A4E8100D63A0F /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B881151A262A4E8100D63A0F /* Helpers.swift */; };
+		B8E158F3262B6878003D101E /* NodeGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8E158F2262B6878003D101E /* NodeGrid.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +54,8 @@
 		B8811505262A332A00D63A0F /* A Star PathingUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "A Star PathingUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B8811509262A332A00D63A0F /* A_Star_PathingUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = A_Star_PathingUITests.swift; sourceTree = "<group>"; };
 		B881150B262A332A00D63A0F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B881151A262A4E8100D63A0F /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
+		B8E158F2262B6878003D101E /* NodeGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeGrid.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,6 +110,8 @@
 				B88114E7262A332900D63A0F /* GameScene.sks */,
 				B88114E9262A332900D63A0F /* Actions.sks */,
 				B88114EB262A332900D63A0F /* GameScene.swift */,
+				B8E158F2262B6878003D101E /* NodeGrid.swift */,
+				B881151A262A4E8100D63A0F /* Helpers.swift */,
 				B88114ED262A332900D63A0F /* ViewController.swift */,
 				B88114EF262A332900D63A0F /* Assets.xcassets */,
 				B88114F1262A332900D63A0F /* Main.storyboard */,
@@ -266,7 +272,9 @@
 			files = (
 				B88114EE262A332900D63A0F /* ViewController.swift in Sources */,
 				B88114EC262A332900D63A0F /* GameScene.swift in Sources */,
+				B8E158F3262B6878003D101E /* NodeGrid.swift in Sources */,
 				B88114E6262A332900D63A0F /* AppDelegate.swift in Sources */,
+				B881151B262A4E8100D63A0F /* Helpers.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

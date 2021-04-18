@@ -24,6 +24,7 @@ class GameScene: SKScene {
 	
 	private var NodesChanged: [(Int, Int)] = []
 	private var CurrentChangingColor: NodeProperty?
+	private var DraggingWithPoint: NodeProperty?
 	
     private var lastUpdateTime : TimeInterval = 0
     private var label : SKLabelNode?
@@ -53,7 +54,6 @@ class GameScene: SKScene {
 		coordMultiplier = CGPoint((node.width*nodeShrink), (node.height*nodeShrink))
 		for (xnum, xScreen) in xcoords.enumerated() {
 			for (ynum, yScreen) in ycoords.enumerated(){
-				print(coordMultiplier)
 				let pos = CGPoint(x: xScreen, y: yScreen)
 				if let node = self.spinnyNode?.copy() as! SKShapeNode? {
 					node.position = pos * (coordMultiplier-(coordMultiplier/2)) + (coordMultiplier/4)
@@ -122,7 +122,7 @@ class GameScene: SKScene {
 		}
 		return (crds[0], crds[1])
 	}
-	func ClickHandler() {
+	func ClickHandler(isDrop: Bool = false) {
 		for aChild in self.children {
 			if let child = aChild as? SKShapeNode {
 				if aChild.contains(mousePos) && !(child.name!.hasPrefix("/")) {
@@ -138,7 +138,6 @@ class GameScene: SKScene {
 						break
 					}
 					if NodesChanged.contains(where: {($0.0 == coords.0)&&($0.1 == coords.1)}) {
-						print(coords)
 						break
 					}
 					NodesChanged.append(coords)
@@ -151,9 +150,22 @@ class GameScene: SKScene {
 						nodeGrid[coords.0, coords.1].Property = .Water
 					}
 					if IsFirst {
+						if nodeGrid[coords.0, coords.1].Property == .Start {
+							nodeGrid[coords.0, coords.1].Property = .Default
+							DraggingWithPoint = .Start
+						} else if nodeGrid[coords.0, coords.1].Property == .End {
+							nodeGrid[coords.0, coords.1].Property = .Default
+							DraggingWithPoint = .End
+						} else {
+							DraggingWithPoint = nil
+						}
 						CurrentChangingColor = nodeGrid[coords.0, coords.1].Property
 					} else {
 						nodeGrid[coords.0, coords.1].Property = CurrentChangingColor!
+						if isDrop && (DraggingWithPoint != nil) {
+							nodeGrid[coords.0, coords.1].Property = DraggingWithPoint!
+							DraggingWithPoint = nil
+						}
 					}
 					child.fillColor = nodeGrid[coords.0, coords.1].Property.Color
 				}
@@ -210,7 +222,18 @@ class GameScene: SKScene {
         }
 		if (nodeGrid.findGoal() != CGPoint.zero) && (nodeGrid.findStart() != CGPoint.zero) {
 			if oldNodes ?? [] != nodeGrid.nodes{
-				nodeGrid.solve()
+				let yourline = SKShapeNode()
+				let div: CGPoint = CGPoint(2,2)
+				var line = nodeGrid.path(multiplier: coordMultiplier/div)
+				
+				var child = self.children[lineNum] as? SKShapeNode
+				child?.path = CGMutablePath()
+				child?.path = line
+				child?.zPosition = 10
+				child?.strokeColor = .systemRed
+				child?.removeFromParent()
+				self.addChild(child!)
+				
 			}
 			if hasChangedSinceUpdate {
 				for aChild in self.children[1..<self.children.count] {
@@ -229,15 +252,7 @@ class GameScene: SKScene {
 						}
 					}
 				}
-				let yourline = SKShapeNode()
-				let div: CGPoint = CGPoint(2,2)
-				self.addChild(yourline)
-				var line = nodeGrid.path(multiplier: coordMultiplier/div)
-				
-				var child = self.children[lineNum] as? SKShapeNode
-				child?.path = CGMutablePath()
-				child?.path = line
-				
+				print("hey")
 				hasChangedSinceUpdate = false
 			}
 		} else {

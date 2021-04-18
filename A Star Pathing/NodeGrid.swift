@@ -217,7 +217,7 @@ struct NodeGrid {
 				}
 			}
 		}
-		print(explorableMin.x, explorableMin.y)
+//		print(explorableMin.x, explorableMin.y)
 		
 		self[explorableMin]!.Explored = true
 		
@@ -297,7 +297,7 @@ struct NodeGrid {
 			}
 		}
 		let train = trace()
-		print(train)
+//		print(train)
 	}
 }
 struct Node: Equatable {

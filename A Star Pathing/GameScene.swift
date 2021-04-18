@@ -16,6 +16,7 @@ class GameScene: SKScene {
 	private var xWidth: Int = 10/2
 	private var yWidth: Int = 10/2
 	private var nodeGrid: NodeGrid = NodeGrid(width: 1, height: 1)
+	private var oldNodes: [Node]?
 	
 	private var mousePos = CGPoint()
 	private var clickID = 0
@@ -114,7 +115,6 @@ class GameScene: SKScene {
 			if let child = aChild as? SKShapeNode {
 				if aChild.contains(mousePos) {
 					var IsFirst = NodesChanged.count == 0
-					print(child.name!+": ", child.xScale, child.yScale)
 					var coords: (Int, Int)
 					if let parts = child.name?.split(separator: ":") {
 						var crds:[Int] = []
@@ -130,11 +130,12 @@ class GameScene: SKScene {
 						break
 					}
 					NodesChanged.append(coords)
-					if child.fillColor == .blue {
+					let currentProperty = nodeGrid[coords.0, coords.1].Property
+					if currentProperty == .Water {
 						nodeGrid[coords.0, coords.1].Property = .Wall
-					} else if child.fillColor == .red {
+					} else if currentProperty == .Wall {
 						nodeGrid[coords.0, coords.1].Property = .Default
-					} else {
+					} else if currentProperty == .Default {
 						nodeGrid[coords.0, coords.1].Property = .Water
 					}
 					if IsFirst {
@@ -192,7 +193,30 @@ class GameScene: SKScene {
         for entity in self.entities {
             entity.update(deltaTime: dt)
         }
-        
+		if (nodeGrid.findGoal() != CGPoint.zero) && (nodeGrid.findStart() != CGPoint.zero) {
+			if oldNodes ?? [] != nodeGrid.nodes{
+				nodeGrid.solve()
+			}
+			if nodeGrid.nodes != oldNodes ?? [] {
+				for aChild in self.children {
+					if let child = aChild as? SKShapeNode {
+						let coords: (Int, Int) = CoordDecoder(name: child.name!)
+						child.fillColor = nodeGrid[coords.0, coords.1].Property.Color
+						if nodeGrid[coords.0, coords.1].Explored {
+							child.strokeColor = .white
+						} else {
+							child.strokeColor = .black
+						}
+					}
+				}
+			}
+		} else {
+			for aChild in self.children {
+				if let child = aChild as? SKShapeNode {
+					child.strokeColor = .black
+				}
+			}
+		}
         self.lastUpdateTime = currentTime
     }
 }

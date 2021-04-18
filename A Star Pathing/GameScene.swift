@@ -13,13 +13,14 @@ class GameScene: SKScene {
     var entities = [GKEntity]()
     var graphs = [String : GKGraph]()
     
-	private var xWidth: Int = 10/2
-	private var yWidth: Int = 10/2
+	private var xWidth: Int = 25/2
+	private var yWidth: Int = 25/2
 	private var nodeGrid: NodeGrid = NodeGrid(width: 1, height: 1)
 	private var oldNodes: [Node]?
 	
 	private var mousePos = CGPoint()
 	private var clickID = 0
+	private var hasChangedSinceUpdate = false
 	
 	private var NodesChanged: [(Int, Int)] = []
 	private var CurrentChangingColor: NodeProperty?
@@ -28,6 +29,8 @@ class GameScene: SKScene {
     private var label : SKLabelNode?
     private var spinnyNode : SKShapeNode?
 	private var coordMultiplier: CGPoint = CGPoint()
+	
+	var lineNum: Int = 0
     
     override func sceneDidLoad() {
         
@@ -62,8 +65,14 @@ class GameScene: SKScene {
 				}
 			}
 		}
-		
-		//create the node grid
+		let yourline = SKShapeNode()
+		yourline.strokeColor = SKColor.red
+		yourline.name = "/path"
+		yourline.zPosition = 15
+		yourline.position = CGPoint(-self.size.width/2, -self.size.height/2)
+		yourline.lineWidth = 5
+		lineNum = self.children.count
+		self.addChild(yourline)
 		nodeGrid = NodeGrid(width: xWidth*2, height: yWidth*2)
 		
     }
@@ -102,7 +111,10 @@ class GameScene: SKScene {
 		}
 		return nil
 	}
-	func CoordDecoder(name: String) -> (Int, Int) {
+	func CoordDecoder(name: String) -> (Int, Int)? {
+		if name.hasPrefix("/") {
+			return nil
+		}
 		let parts = name.split(separator: ":")
 		var crds:[Int] = []
 		for part in parts {
@@ -113,7 +125,7 @@ class GameScene: SKScene {
 	func ClickHandler() {
 		for aChild in self.children {
 			if let child = aChild as? SKShapeNode {
-				if aChild.contains(mousePos) {
+				if aChild.contains(mousePos) && !(child.name!.hasPrefix("/")) {
 					var IsFirst = NodesChanged.count == 0
 					var coords: (Int, Int)
 					if let parts = child.name?.split(separator: ":") {
@@ -154,22 +166,25 @@ class GameScene: SKScene {
 		mousePos = event.location(in: self)
 		clickID += 1
 		ClickHandler()
+		hasChangedSinceUpdate = true
     }
 	override func rightMouseDown(with event: NSEvent) {
 		var child = findChild(pos: event.location(in: self))
-		let Coord = CoordDecoder(name: child!.name!)
-		if nodeGrid[Coord.0, Coord.1].Property == .Start {
-			nodeGrid[Coord.0, Coord.1].Property = .End
-		} else {
-			nodeGrid[Coord.0, Coord.1].Property = .Start
+		if let Coord = CoordDecoder(name: child!.name!) {
+			if nodeGrid[Coord.0, Coord.1].Property == .Start {
+				nodeGrid[Coord.0, Coord.1].Property = .End
+			} else {
+				nodeGrid[Coord.0, Coord.1].Property = .Start
+			}
+			child!.fillColor = nodeGrid[Coord.0, Coord.1].Property.Color
+			hasChangedSinceUpdate = true
 		}
-		child!.fillColor = nodeGrid[Coord.0, Coord.1].Property.Color
-		
 	}
     override func mouseDragged(with event: NSEvent) {
         self.touchMoved(toPoint: event.location(in: self))
 		mousePos = event.location(in: self)
 		ClickHandler()
+		hasChangedSinceUpdate = true
     }
     
     override func mouseUp(with event: NSEvent) {
@@ -197,23 +212,39 @@ class GameScene: SKScene {
 			if oldNodes ?? [] != nodeGrid.nodes{
 				nodeGrid.solve()
 			}
-			if nodeGrid.nodes != oldNodes ?? [] {
-				for aChild in self.children {
+			if hasChangedSinceUpdate {
+				for aChild in self.children[1..<self.children.count] {
 					if let child = aChild as? SKShapeNode {
-						let coords: (Int, Int) = CoordDecoder(name: child.name!)
-						child.fillColor = nodeGrid[coords.0, coords.1].Property.Color
-						if nodeGrid[coords.0, coords.1].Explored {
-							child.strokeColor = .white
-						} else {
-							child.strokeColor = .black
+						if child.name != nil {
+							if let coords: (Int, Int) = CoordDecoder(name: child.name!) {
+								child.fillColor = nodeGrid[coords.0, coords.1].Property.Color
+								if nodeGrid[coords.0, coords.1].Explored {
+									child.strokeColor = .white
+									child.zPosition = 1
+								} else {
+									child.strokeColor = .black
+									child.zPosition = 0
+								}
+							}
 						}
 					}
 				}
+				let yourline = SKShapeNode()
+				let div: CGPoint = CGPoint(2,2)
+				self.addChild(yourline)
+				var line = nodeGrid.path(multiplier: coordMultiplier/div)
+				
+				var child = self.children[lineNum] as? SKShapeNode
+				child?.path = CGMutablePath()
+				child?.path = line
+				
+				hasChangedSinceUpdate = false
 			}
 		} else {
 			for aChild in self.children {
 				if let child = aChild as? SKShapeNode {
 					child.strokeColor = .black
+					child.zPosition = 0
 				}
 			}
 		}

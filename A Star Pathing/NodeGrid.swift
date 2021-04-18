@@ -116,17 +116,16 @@ struct NodeGrid {
 			set(CGPoint(x: Int(x), y: Int(y)), newValue)
 		}
 	}
-	subscript (_ x: CGPoint) -> Node {
+	subscript (_ x: CGPoint) -> Node? {
 		get {
 			if x.x > 0 && x.x < CGFloat(width) && x.y > 0 && x.y < CGFloat(height) {
 				return get(x)
-//			} else {
-//				return nil
+			} else {
+				return nil
 			}
-			return nodes[0]
 		}
 		set {
-			set(x, newValue)
+			set(x, newValue!)
 		}
 	}
 	func validate(_ point: CGPoint) -> Bool {
@@ -159,14 +158,14 @@ struct NodeGrid {
 	}
 	mutating func CostCalc(_ x: CGPoint) {
 		let goalDist = vDSP.distanceSquared([Float(x.x), Float(x.y)], [Float(goal.x), Float(goal.y)])
-		let startDist = vDSP.distanceSquared([Float(x.x), Float(x.y)], [Float(start.x), Float(start.y)])
-		
-		self[x]?.cost = CGFloat(goalDist + (startDist/2))
+		self[x]?.distToGoal = CGFloat(goalDist)
+		self[x]?.cost = CGFloat(goalDist)
 	}
 	mutating func exploreSurrounding(from: CGPoint) -> Bool {
 		if let index = explorable.firstIndex(of: from) {
 			explorable.remove(at: index)
 		}
+		let baseCost = (self[from]?.cost, self[from]?.distFromStart, self[from]?.distToGoal)
 		let thread = DispatchQueue.global(qos: .userInteractive)
 		let group = DispatchGroup()
 		var foundEnd = false
@@ -174,19 +173,18 @@ struct NodeGrid {
 		for (dir, _) in Directions {
 			let exploringPoint = dir.apply(to: from)
 			if validate(exploringPoint) {
-				group.enter()
-				let savedExploringPoint = self[exploringPoint]!
-				thread.async {
-					self.updateable.toggle()
-					if !savedExploringPoint.Explored {
-						if savedExploringPoint.Property == .Default {
-							appends.append(exploringPoint)
-							self.CostCalc(exploringPoint)
-						} else if savedExploringPoint.Property == .End {
-							foundEnd = true
-						}
+				let savedExploringPoint = self[exploringPoint]
+				self.updateable.toggle()
+				if !savedExploringPoint!.Explored {
+					if savedExploringPoint!.Property == .Default {
+						appends.append(exploringPoint)
+						self.CostCalc(exploringPoint)
+						self[exploringPoint]!.cost = baseCost.2! + (self[exploringPoint]?.distToGoal)!
+						self[exploringPoint]?.parent = from
+					} else if savedExploringPoint!.Property == .End {
+						self[exploringPoint]?.parent = from
+						foundEnd = true
 					}
-					group.leave()
 				}
 			}
 		}
@@ -204,7 +202,12 @@ struct NodeGrid {
 //			self[unexploredPoint]!.cost = goalDist + (startDist/2)
 //
 //		}
-		var explorableMin: CGPoint = explorable[0]
+		var explorableMin: CGPoint = CGPoint.zero
+		if explorable.count != 0 {
+			explorableMin = explorable[0]
+		} else {
+			return true
+		}
 		var expNum: Int? = nil
 		for (num, i) in explorable.enumerated() {
 			if !self[i]!.Explored {
@@ -223,9 +226,37 @@ struct NodeGrid {
 			explorable.remove(at: expNum!)
 		}
 		let results = exploreSurrounding(from: explorableMin)
-		print(debug())
+//		print(debug())
 		return results
 		
+	}
+	var parentTrain: [CGPoint] = [CGPoint.zero, CGPoint.zero]
+	mutating func trace() -> [CGPoint] {
+		parentTrain = []
+		parentTrain.append(self[goal]!.parent!)
+		var traceCount = 0
+		while true {
+			traceCount += 1
+			let newMainNode: CGPoint = parentTrain[parentTrain.count-1]
+			if self[newMainNode]!.Property != .Start {
+				parentTrain.append(self[newMainNode]!.parent!)
+			} else {
+				break
+			}
+			if traceCount > (width*height)/2 {
+				break
+			}
+		}
+		return parentTrain
+	}
+	mutating func path(multiplier: CGPoint) -> CGMutablePath {
+		solve()
+		var Path = CGMutablePath()
+		Path.move(to: parentTrain[0]*multiplier)
+		for i in 1..<parentTrain.count {
+			Path.addLine(to: parentTrain[i]*multiplier)
+		}
+		return Path
 	}
 	mutating func solve() {
 		explorable.removeAll()
@@ -235,6 +266,8 @@ struct NodeGrid {
 		}
 		start = findStart()
 		goal = findGoal()
+		self[start]?.distFromStart=0
+		CostCalc(start)
 		exploreSurrounding(from: start)
 		if explorable.count == 0 {
 			return
@@ -263,6 +296,8 @@ struct NodeGrid {
 				}
 			}
 		}
+		let train = trace()
+		print(train)
 	}
 }
 struct Node: Equatable {
@@ -272,6 +307,7 @@ struct Node: Equatable {
 	var distFromStart: CGFloat?
 	var cost: CGFloat?
 	var color: (NSColor, NSColor)?
+	var parent: CGPoint?
 	init(_ Property: NodeProperty) {
 		self.Property = Property
 	}
@@ -289,11 +325,11 @@ enum NodeProperty {
 extension NodeProperty {
 	var Color: NSColor {
 		let ColorTable: [NodeProperty: NSColor] = [
-			.Default: .gray,
-			.Water: .blue,
-			.Wall: .red,
-			.Start: .purple,
-			.End: .yellow,
+			.Default: .systemGray,
+			.Water: .systemBlue,
+			.Wall: .systemRed,
+			.Start: .systemPurple,
+			.End: .systemYellow,
 		]
 		for (Property, Color) in ColorTable {
 			if self == Property {

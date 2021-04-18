@@ -50,8 +50,14 @@ extension CGPoint {
 		let y = lhs.y / rhs.y
 		return Self(x, y)
 	}
-	init<source>(_ x: source, _ y: source) where source: BinaryFloatingPoint  {
-		self = Self(x: CGFloat(x), y: CGFloat(y))
+	init(_ x: Int, _ y: Int)  {
+		self = Self(x: x, y: y)
+	}
+	init(_ x: CGFloat, _ y: CGFloat)  {
+		self = Self(x: x, y: y)
+	}
+	init(_ x: Float, _ y: Float)  {
+		self = Self(x, y)
 	}
 	init(_ point: CGSize) {
 		self = Self(point.width, point.height)

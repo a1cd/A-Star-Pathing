@@ -221,39 +221,46 @@ class GameScene: SKScene {
             entity.update(deltaTime: dt)
         }
 		if (nodeGrid.findGoal() != CGPoint.zero) && (nodeGrid.findStart() != CGPoint.zero) {
-			if oldNodes ?? [] != nodeGrid.nodes{
-				let yourline = SKShapeNode()
-				let div: CGPoint = CGPoint(2,2)
-				var line = nodeGrid.path(multiplier: coordMultiplier/div)
-				
-				var child = self.children[lineNum] as? SKShapeNode
-				child?.path = CGMutablePath()
-				child?.path = line
-				child?.zPosition = 10
-				child?.strokeColor = .systemRed
-				child?.removeFromParent()
-				self.addChild(child!)
-				
+			let dp = DispatchGroup()
+			dp.enter()
+			DispatchQueue.global(qos: .userInteractive).async {
+				if self.hasChangedSinceUpdate {
+					let yourline = SKShapeNode()
+					let div: CGPoint = CGPoint(2,2)
+					
+					var line = self.nodeGrid.path(multiplier: self.coordMultiplier/div)
+					
+					var child = self.children[self.lineNum] as? SKShapeNode
+					child?.path = CGMutablePath()
+					child?.path = line
+					child?.zPosition = 10
+					child?.strokeColor = .systemRed
+					child?.removeFromParent()
+					self.addChild(child!)
+					
+				}
+				dp.leave()
 			}
-			if hasChangedSinceUpdate {
-				for aChild in self.children[1..<self.children.count] {
-					if let child = aChild as? SKShapeNode {
-						if child.name != nil {
-							if let coords: (Int, Int) = CoordDecoder(name: child.name!) {
-								child.fillColor = nodeGrid[coords.0, coords.1].Property.Color
-								if nodeGrid[coords.0, coords.1].Explored {
-									child.strokeColor = .white
-									child.zPosition = 1
-								} else {
-									child.strokeColor = .black
-									child.zPosition = 0
+			dp.notify(queue: DispatchQueue.global(qos: .userInteractive)) {
+				if self.hasChangedSinceUpdate {
+					for aChild in self.children[1..<self.children.count] {
+						if let child = aChild as? SKShapeNode {
+							if child.name != nil {
+								if let coords: (Int, Int) = self.CoordDecoder(name: child.name!) {
+									child.fillColor = self.nodeGrid[coords.0, coords.1].Property.Color
+									if self.nodeGrid[coords.0, coords.1].Explored {
+										child.strokeColor = .white
+										child.zPosition = 1
+									} else {
+										child.strokeColor = .black
+										child.zPosition = 0
+									}
 								}
 							}
 						}
 					}
 				}
-				print("hey")
-				hasChangedSinceUpdate = false
+				self.hasChangedSinceUpdate = false
 			}
 		} else {
 			for aChild in self.children {

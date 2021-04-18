@@ -421,6 +421,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = fast;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -572,7 +573,7 @@
 				B881150D262A332A00D63A0F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		B881150E262A332A00D63A0F /* Build configuration list for PBXNativeTarget "A Star Pathing" */ = {
 			isa = XCConfigurationList;
@@ -581,7 +582,7 @@
 				B8811510262A332A00D63A0F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		B8811511262A332A00D63A0F /* Build configuration list for PBXNativeTarget "A Star PathingTests" */ = {
 			isa = XCConfigurationList;
@@ -590,7 +591,7 @@
 				B8811513262A332A00D63A0F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		B8811514262A332A00D63A0F /* Build configuration list for PBXNativeTarget "A Star PathingUITests" */ = {
 			isa = XCConfigurationList;
@@ -599,7 +600,7 @@
 				B8811516262A332A00D63A0F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
